@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego del Café de Especialidad</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f1e3;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .quiz-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #4b2c20;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        .question-box {
+            background-color: #e5dada;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4b2c20;
+            text-align: center;
+        }
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .option-button {
+            background-color: #c9b19e;
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .option-button:hover {
+            background-color: #b39b86;
+        }
+        .option-button:active {
+            transform: scale(0.98);
+        }
+        .option-button.correct {
+            background-color: #4CAF50;
+        }
+        .option-button.wrong {
+            background-color: #f44336;
+        }
+        .message-box {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            font-weight: bold;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .control-button {
+            background-color: #4b2c20;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        .control-button:hover {
+            background-color: #3a221a;
+        }
+        #restartButton {
+            background-color: #4b2c20;
+        }
+        #restartButton:hover {
+            background-color: #3a221a;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <h1>Juego del Café de Especialidad</h1>
+        <div class="question-box" id="questionBox"></div>
+        <div class="options-container" id="optionsContainer"></div>
+        <div class="controls">
+            <span id="scoreDisplay">Puntuación: 0</span>
+            <button class="control-button" id="nextButton">Siguiente</button>
+            <button class="control-button" id="restartButton" style="display:none;">Volver a jugar</button>
+        </div>
+        <div class="message-box" id="messageBox"></div>
+    </div>
+
+    <script>
+        // Array de preguntas y sus respuestas correctas, ahora con explicaciones incluidas.
+        const questions = [
+            {
+                question: "¿Qué puntuación mínima necesita un café para ser considerado de especialidad según la SCA?",
+                options: ["60/100", "75/100", "80/100", "90/100"],
+                answer: "80/100",
+                explanation: "Según la Specialty Coffee Association (SCA), un café debe alcanzar una puntuación de 80 o más sobre 100 en una cata profesional para ser clasificado como de especialidad."
+            },
+            {
+                question: "¿Cuál de estos procesos de beneficio resalta un dulzor alto y notas frutales?",
+                options: ["Lavado", "Natural", "Honey", "Fermentado"],
+                answer: "Natural",
+                explanation: "El proceso natural de secado del grano de café con la cereza entera permite que los azúcares de la fruta se transfieran al grano, resultando en un sabor con mayor dulzor y notas frutales intensas."
+            },
+            {
+                question: "Según el PDF, ¿cuál de estos mitos es desmentido sobre el café de especialidad?",
+                options: ["Requiere equipo muy caro", "No se puede congelar", "Sabe amargo y fuerte", "Solo se puede preparar en cafetera de goteo"],
+                answer: "Sabe amargo y fuerte",
+                explanation: "El documento desmiente el mito de que la 'fuerza' del café es sinónimo de amargor. En realidad, un café de especialidad bien extraído tiene un sabor equilibrado y sin amargor excesivo."
+            },
+            {
+                question: "¿Qué es la trazabilidad en el café?",
+                options: ["El proceso de tueste", "El puntaje de cata", "La información clara del recorrido del grano", "El tipo de grano"],
+                answer: "La información clara del recorrido del grano",
+                explanation: "La trazabilidad se refiere a tener información clara sobre el recorrido del grano, desde la finca de origen hasta tu taza, incluyendo detalles sobre el productor, la variedad y el proceso de cultivo."
+            },
+            {
+                question: "Para conservar los aromas, ¿cuándo es ideal moler el café?",
+                options: ["Al comprarlo", "Antes de guardarlo", "Justo antes de preparar", "No importa el momento"],
+                answer: "Justo antes de preparar",
+                explanation: "Moler el café justo antes de prepararlo es crucial para conservar sus aromas y sabores, ya que una vez molido, el café pierde sus compuestos volátiles con mucha rapidez."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        const questionBox = document.getElementById('questionBox');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const nextButton = document.getElementById('nextButton');
+        const restartButton = document.getElementById('restartButton');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const messageBox = document.getElementById('messageBox');
+
+        // Función para barajar un array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Función para mostrar la pregunta actual
+        function showQuestion() {
+            const currentQuestion = questions[currentQuestionIndex];
+            questionBox.textContent = currentQuestion.question;
+            optionsContainer.innerHTML = '';
+            // Oculta el cuadro de mensaje al mostrar una nueva pregunta
+            messageBox.style.display = 'none';
+            // Barajar las opciones para que no siempre estén en el mismo orden
+            shuffleArray(currentQuestion.options);
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-button');
+                button.addEventListener('click', () => checkAnswer(option));
+                optionsContainer.appendChild(button);
+            });
+            nextButton.style.display = 'none';
+            updateScoreDisplay();
+        }
+
+        // Función para verificar la respuesta
+        function checkAnswer(selectedOption) {
+            const currentQuestion = questions[currentQuestionIndex];
+            const buttons = optionsContainer.querySelectorAll('.option-button');
+            buttons.forEach(button => {
+                button.disabled = true;
+                if (button.textContent === currentQuestion.answer) {
+                    button.classList.add('correct');
+                } else if (button.textContent === selectedOption) {
+                    button.classList.add('wrong');
+                }
+            });
+
+            if (selectedOption === currentQuestion.answer) {
+                score++;
+                messageBox.textContent = '¡Correcto! 🎉';
+            } else {
+                messageBox.textContent = `Incorrecto. La respuesta correcta era: ${currentQuestion.answer}.\n\nExplicación: ${currentQuestion.explanation}`;
+            }
+            // Muestra el cuadro de mensaje
+            messageBox.style.display = 'block';
+            nextButton.style.display = 'block';
+            updateScoreDisplay();
+        }
+
+        // Función para actualizar la puntuación
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = `Puntuación: ${score}`;
+        }
+
+        // Función para pasar a la siguiente pregunta de la lista estática
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        // Función para terminar el juego
+        function endGame() {
+            questionBox.textContent = `Juego terminado. Tu puntuación final es ${score} de ${questions.length}.`;
+            optionsContainer.innerHTML = '';
+            nextButton.style.display = 'none';
+            messageBox.style.display = 'none';
+            restartButton.style.display = 'block';
+        }
+
+        // Función para reiniciar el juego
+        function restartGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            restartButton.style.display = 'none';
+            shuffleArray(questions); // Baraja las preguntas al reiniciar
+            showQuestion();
+        }
+
+        // Añadir listeners de eventos
+        nextButton.addEventListener('click', nextQuestion);
+        restartButton.addEventListener('click', restartGame);
+
+        // Iniciar el juego al cargar la página
+        shuffleArray(questions); // Baraja las preguntas al inicio
+        showQuestion();
+    </script>
+</body>
+</html>
